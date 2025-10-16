@@ -1,16 +1,299 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Meu Proxy</title>
-  <style>
-    html,body {margin:0;padding:0;height:100%;}
-    iframe {width:100%;height:100%;border:none;}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Log in Recreation</title>
+    <style>
+        /* General Reset and Body Styling */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            /* Simulating a mobile screen width for the TikTok app feel */
+            min-height: 100vh;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px; /* Adjust max-width to simulate the screen size better */
+            padding: 0 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        /* Header Styling */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .logo-text {
+            color: #000;
+            margin-left: 5px; /* Adjust spacing as needed */
+        }
+
+        .tiktok-logo-part {
+            /* Simulating the red/blue/black TikTok logo using text for simplicity */
+            display: inline-block;
+            position: relative;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        .tiktok-logo-part::before {
+            content: 'J';
+            color: #fe2c55; /* Reddish */
+            position: absolute;
+            left: -2px;
+            top: 2px;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        .tiktok-logo-part::after {
+            content: 'J';
+            color: #25f4ee; /* Cyan */
+            position: absolute;
+            left: 2px;
+            top: -2px;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        .feedback-help {
+            display: flex;
+            align-items: center;
+            color: #000;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .feedback-help span {
+            margin-left: 5px;
+        }
+
+        .placeholder-circle {
+            width: 30px;
+            height: 30px;
+            background-color: #e0e0e0; /* Gray for the placeholder */
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            right: 0;
+        }
+
+
+        /* Log In Title */
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 50px;
+            margin-bottom: 30px;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .login-options a {
+            color: #fe2c55; /* Reddish link color */
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background-color: #f7f7f7;
+            color: #000;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field::placeholder {
+            color: #888;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #fe2c55; /* TikTok Red */
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            margin-top: 25px;
+            cursor: pointer;
+            opacity: 0.6; /* Grayed out/disabled appearance */
+        }
+
+        /* Go Back Section */
+        .go-back {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #000;
+        }
+
+        .go-back span {
+            margin-left: 5px;
+        }
+
+        /* Sign Up Section */
+        .signup-section {
+            text-align: center;
+            margin-top: 80px;
+            font-size: 16px;
+            color: #000;
+        }
+
+        .signup-section a {
+            color: #fe2c55;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding-bottom: 20px;
+            background-color: #fff;
+        }
+
+        .language-btn {
+            padding: 10px 30px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .copyright {
+            color: #888;
+            font-size: 12px;
+        }
+
+        /* Icons (using standard unicode/font for simple recreation) */
+        .icon-question::before { content: '\2753'; margin-right: 5px; font-size: 16px; } /* Question Mark Icon */
+        .icon-eye::before { content: '\1F441'; } /* Eye Icon */
+        .icon-chevron-left::before { content: '\2329'; } /* Left Arrow Icon */
+
+
+    </style>
 </head>
 <body>
-  <!-- Carrega o site externo via proxy -->
-  <iframe src="/.netlify/functions/proxy?url=https://www.tiktok.com/login/phone-or-email/email"></iframe>
+
+    <div class="login-container">
+
+        <header class="header">
+            <div class="logo">
+                <span class="tiktok-logo-part">J</span><span class="logo-text">TikTok</span>
+            </div>
+            <div class="feedback-help">
+                <span class="icon-question"></span>Feedback and help
+            </div>
+            <div class="placeholder-circle"></div>
+        </header>
+
+        <h1>Log in</h1>
+
+        <form>
+            <div class="login-options">
+                <span>Email or username</span>
+                <a href="#">Log in with phone</a>
+            </div>
+
+            <div class="form-group">
+                <input type="text" class="input-field" placeholder="Email or username">
+            </div>
+
+            <div class="form-group">
+                <input type="password" class="input-field" placeholder="Password">
+                <span class="password-toggle icon-eye"></span>
+            </div>
+
+            <a href="#" class="forgot-password">Forgot password?</a>
+
+            <button type="submit" class="login-btn" disabled>Log in</button>
+        </form>
+
+        <div class="go-back">
+            <span class="icon-chevron-left"></span>Go back
+        </div>
+
+        <div class="signup-section">
+            Don't have an account? <a href="#">Sign up</a>
+        </div>
+
+    </div>
+
+    <footer class="footer">
+        <button class="language-btn">English (US)</button>
+        <div class="copyright">&copy; 2025 TikTok</div>
+    </footer>
+
 </body>
 </html>
