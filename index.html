@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Log in Recreation</title>
+    <title id="pageTitle">TikTok Log in Recreation</title>
     <style>
         /* General Reset and Body Styling */
         body {
@@ -13,13 +13,12 @@
             padding: 0;
             display: flex;
             justify-content: center;
-            /* Simulating a mobile screen width for the TikTok app feel */
             min-height: 100vh;
         }
 
         .login-container {
             width: 100%;
-            max-width: 450px; /* Adjust max-width to simulate the screen size better */
+            max-width: 450px;
             padding: 0 20px;
             box-sizing: border-box;
             background-color: #fff;
@@ -42,7 +41,7 @@
 
         .logo-text {
             color: #000;
-            margin-left: 5px; /* Adjust spacing as needed */
+            margin-left: 5px;
         }
 
         .tiktok-logo-part {
@@ -86,17 +85,6 @@
         .feedback-help span {
             margin-left: 5px;
         }
-
-        .placeholder-circle {
-            width: 30px;
-            height: 30px;
-            background-color: #e0e0e0; /* Gray for the placeholder */
-            border-radius: 50%;
-            position: absolute;
-            top: 15px;
-            right: 0;
-        }
-
 
         /* Log In Title */
         h1 {
@@ -217,6 +205,8 @@
             text-align: center;
             padding-bottom: 20px;
             background-color: #fff;
+            /* Garante que o footer fique na parte inferior, mesmo em telas menores */
+            transform: translateY(0);
         }
 
         .language-btn {
@@ -238,7 +228,7 @@
 
         /* Icons (using standard unicode/font for simple recreation) */
         .icon-question::before { content: '\2753'; margin-right: 5px; font-size: 16px; } /* Question Mark Icon */
-        .icon-eye::before { content: '\1F441'; } /* Eye Icon */
+        .icon-google-like::before { content: '\25CF'; font-size: 16px; } /* Generic filled circle for 'Google' eye replacement */
         .icon-chevron-left::before { content: '\2329'; } /* Left Arrow Icon */
 
 
@@ -253,47 +243,133 @@
                 <span class="tiktok-logo-part">J</span><span class="logo-text">TikTok</span>
             </div>
             <div class="feedback-help">
-                <span class="icon-question"></span>Feedback and help
+                <span class="icon-question"></span><span data-key="feedbackHelp">Feedback and help</span>
             </div>
-            <div class="placeholder-circle"></div>
-        </header>
+            </header>
 
-        <h1>Log in</h1>
+        <h1 data-key="loginTitle">Log in</h1>
 
         <form>
             <div class="login-options">
-                <span>Email or username</span>
-                <a href="#">Log in with phone</a>
+                <span data-key="emailUsernameLabel">Email or username</span>
+                <a href="#" data-key="loginWithPhone">Log in with phone</a>
             </div>
 
             <div class="form-group">
-                <input type="text" class="input-field" placeholder="Email or username">
+                <input type="text" class="input-field" id="emailInput" placeholder="Email or username">
             </div>
 
             <div class="form-group">
-                <input type="password" class="input-field" placeholder="Password">
-                <span class="password-toggle icon-eye"></span>
+                <input type="password" class="input-field" id="passwordInput" placeholder="Password">
+                <span class="password-toggle icon-google-like" id="passwordToggle"></span>
             </div>
 
-            <a href="#" class="forgot-password">Forgot password?</a>
+            <a href="#" class="forgot-password" data-key="forgotPassword">Forgot password?</a>
 
-            <button type="submit" class="login-btn" disabled>Log in</button>
+            <button type="submit" class="login-btn" data-key="loginButton" disabled>Log in</button>
         </form>
 
         <div class="go-back">
-            <span class="icon-chevron-left"></span>Go back
+            <span class="icon-chevron-left"></span><span data-key="goBack">Go back</span>
         </div>
 
         <div class="signup-section">
-            Don't have an account? <a href="#">Sign up</a>
+            <span data-key="noAccountText">Don't have an account?</span> <a href="#" data-key="signUpLink">Sign up</a>
         </div>
 
     </div>
 
     <footer class="footer">
-        <button class="language-btn">English (US)</button>
+        <button class="language-btn" id="languageButton" onclick="toggleLanguage()">English (US)</button>
         <div class="copyright">&copy; 2025 TikTok</div>
     </footer>
 
+    <script>
+        // Objeto de dicionário para as traduções
+        const translations = {
+            'en': {
+                pageTitle: 'TikTok Log in Recreation',
+                feedbackHelp: 'Feedback and help',
+                loginTitle: 'Log in',
+                emailUsernameLabel: 'Email or username',
+                loginWithPhone: 'Log in with phone',
+                emailPlaceholder: 'Email or username',
+                passwordPlaceholder: 'Password',
+                forgotPassword: 'Forgot password?',
+                loginButton: 'Log in',
+                goBack: 'Go back',
+                noAccountText: "Don't have an account?",
+                signUpLink: 'Sign up',
+                languageButton: 'English (US)'
+            },
+            'pt-br': {
+                pageTitle: 'TikTok Recreação de Login',
+                feedbackHelp: 'Ajuda e feedback',
+                loginTitle: 'Entrar',
+                emailUsernameLabel: 'E-mail ou nome de usuário',
+                loginWithPhone: 'Entrar com telefone',
+                emailPlaceholder: 'E-mail ou nome de usuário',
+                passwordPlaceholder: 'Senha',
+                forgotPassword: 'Esqueceu a senha?',
+                loginButton: 'Entrar',
+                goBack: 'Voltar',
+                noAccountText: 'Não tem uma conta?',
+                signUpLink: 'Cadastre-se',
+                languageButton: 'Português (BR)'
+            }
+        };
+
+        let currentLang = 'en'; // Começa em inglês
+
+        // Função principal de tradução
+        function applyTranslation(lang) {
+            const t = translations[lang];
+
+            // Traduzir Título da Página
+            document.getElementById('pageTitle').textContent = t.pageTitle;
+
+            // Traduzir Elementos com atributo data-key
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (t[key]) {
+                    element.textContent = t[key];
+                }
+            });
+
+            // Traduzir Placeholders
+            document.getElementById('emailInput').placeholder = t.emailPlaceholder;
+            document.getElementById('passwordInput').placeholder = t.passwordPlaceholder;
+
+            // Traduzir Botão de Idioma (Atualiza o texto para o idioma ATUAL)
+            document.getElementById('languageButton').textContent = t.languageButton;
+        }
+
+        // Função para alternar o idioma ao clicar
+        function toggleLanguage() {
+            // Se o idioma atual for Inglês, mude para Português, senão, mude para Inglês.
+            currentLang = currentLang === 'en' ? 'pt-br' : 'en';
+
+            // Aplica a tradução
+            applyTranslation(currentLang);
+
+            // Atualiza o atributo lang do HTML para acessibilidade
+            document.documentElement.lang = currentLang;
+        }
+
+        // Adiciona um evento para mostrar/esconder a senha e alterna o símbolo
+        document.getElementById('passwordToggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            // Poderia alternar classes aqui para ícones diferentes, mas manteremos o mesmo símbolo por simplicidade.
+        });
+
+        // Aplica a tradução inicial ao carregar a página (Inglês)
+        document.addEventListener('DOMContentLoaded', () => {
+             // Iniciar em inglês
+             applyTranslation('en'); 
+        });
+
+    </script>
 </body>
 </html>
