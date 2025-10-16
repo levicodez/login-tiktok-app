@@ -134,6 +134,7 @@
             color: #888;
         }
 
+        /* Password Toggle Icon Styling */
         .password-toggle {
             position: absolute;
             right: 15px;
@@ -143,6 +144,10 @@
             font-size: 20px;
             cursor: pointer;
         }
+        /* Icon for the "Eye" (View/Hide password) */
+        .icon-eye::before { content: '\1F441'; } /* Standard Unicode Eye */
+        .icon-eye-slash::before { content: '\1F576'; } /* Standard Unicode Eye-slash (less common, will use simple line across if needed) */
+
 
         .forgot-password {
             display: block;
@@ -205,8 +210,7 @@
             text-align: center;
             padding-bottom: 20px;
             background-color: #fff;
-            /* Garante que o footer fique na parte inferior, mesmo em telas menores */
-            transform: translateY(0);
+            z-index: 100;
         }
 
         .language-btn {
@@ -226,12 +230,62 @@
             font-size: 12px;
         }
 
-        /* Icons (using standard unicode/font for simple recreation) */
+        /* Icons */
         .icon-question::before { content: '\2753'; margin-right: 5px; font-size: 16px; } /* Question Mark Icon */
-        .icon-google-like::before { content: '\25CF'; font-size: 16px; } /* Generic filled circle for 'Google' eye replacement */
         .icon-chevron-left::before { content: '\2329'; } /* Left Arrow Icon */
 
 
+        /* Language Selection Modal/Dropdown Styling */
+        .language-selector-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            z-index: 10;
+        }
+
+        .language-selector-box {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 450px;
+            background: #fff;
+            border-radius: 12px 12px 0 0;
+            padding: 20px;
+            box-sizing: border-box;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .language-selector-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #000;
+        }
+
+        .language-option {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #000;
+        }
+
+        .language-option:hover {
+            background-color: #f9f9f9;
+        }
+
+        .language-option:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -245,7 +299,7 @@
             <div class="feedback-help">
                 <span class="icon-question"></span><span data-key="feedbackHelp">Feedback and help</span>
             </div>
-            </header>
+        </header>
 
         <h1 data-key="loginTitle">Log in</h1>
 
@@ -261,7 +315,7 @@
 
             <div class="form-group">
                 <input type="password" class="input-field" id="passwordInput" placeholder="Password">
-                <span class="password-toggle icon-google-like" id="passwordToggle"></span>
+                <span class="password-toggle icon-eye" id="passwordToggle" data-visible="true"></span>
             </div>
 
             <a href="#" class="forgot-password" data-key="forgotPassword">Forgot password?</a>
@@ -280,9 +334,18 @@
     </div>
 
     <footer class="footer">
-        <button class="language-btn" id="languageButton" onclick="toggleLanguage()">English (US)</button>
+        <button class="language-btn" id="languageButton" onclick="openLanguageSelector()">English (US)</button>
         <div class="copyright">&copy; 2025 TikTok</div>
     </footer>
+
+
+    <div class="language-selector-overlay" id="languageSelectorOverlay" onclick="closeLanguageSelector(event)">
+        <div class="language-selector-box" onclick="event.stopPropagation()">
+            <div class="language-selector-title">Select Language</div>
+            <div class="language-list" id="languageList">
+                </div>
+        </div>
+    </div>
 
     <script>
         // Objeto de dicionário para as traduções
@@ -300,7 +363,7 @@
                 goBack: 'Go back',
                 noAccountText: "Don't have an account?",
                 signUpLink: 'Sign up',
-                languageButton: 'English (US)'
+                selectLanguageTitle: 'Select Language'
             },
             'pt-br': {
                 pageTitle: 'TikTok Recreação de Login',
@@ -315,20 +378,33 @@
                 goBack: 'Voltar',
                 noAccountText: 'Não tem uma conta?',
                 signUpLink: 'Cadastre-se',
-                languageButton: 'Português (BR)'
+                selectLanguageTitle: 'Selecionar Idioma'
             }
         };
 
-        let currentLang = 'en'; // Começa em inglês
+        // Dados dos idiomas para o seletor
+        const languages = [
+            { code: 'en', name: 'English (US)' },
+            { code: 'pt-br', name: 'Português (BR)' },
+            // Você pode adicionar mais idiomas aqui
+        ];
 
-        // Função principal de tradução
+        let currentLang = 'en'; // Começa em inglês
+        const langButton = document.getElementById('languageButton');
+        const overlay = document.getElementById('languageSelectorOverlay');
+        const langList = document.getElementById('languageList');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordToggle = document.getElementById('passwordToggle');
+
+
+        // --- Funções de Tradução ---
         function applyTranslation(lang) {
             const t = translations[lang];
 
-            // Traduzir Título da Página
+            // 1. Traduzir Título da Página
             document.getElementById('pageTitle').textContent = t.pageTitle;
 
-            // Traduzir Elementos com atributo data-key
+            // 2. Traduzir Elementos com atributo data-key
             document.querySelectorAll('[data-key]').forEach(element => {
                 const key = element.getAttribute('data-key');
                 if (t[key]) {
@@ -336,38 +412,81 @@
                 }
             });
 
-            // Traduzir Placeholders
+            // 3. Traduzir Placeholders
             document.getElementById('emailInput').placeholder = t.emailPlaceholder;
             document.getElementById('passwordInput').placeholder = t.passwordPlaceholder;
 
-            // Traduzir Botão de Idioma (Atualiza o texto para o idioma ATUAL)
-            document.getElementById('languageButton').textContent = t.languageButton;
+            // 4. Traduzir Título do Seletor
+            document.querySelector('.language-selector-title').textContent = t.selectLanguageTitle;
+
+            // 5. Atualiza o texto do botão de idioma no rodapé (para o nome do idioma atual)
+            const currentLangData = languages.find(l => l.code === lang);
+            if (currentLangData) {
+                 langButton.textContent = currentLangData.name;
+            }
+
+            // 6. Atualiza o idioma atual
+            currentLang = lang;
+            document.documentElement.lang = lang;
         }
 
-        // Função para alternar o idioma ao clicar
-        function toggleLanguage() {
-            // Se o idioma atual for Inglês, mude para Português, senão, mude para Inglês.
-            currentLang = currentLang === 'en' ? 'pt-br' : 'en';
+        // --- Funções do Seletor de Idioma (Modal) ---
+        function openLanguageSelector() {
+            // Preenche o seletor com as opções
+            langList.innerHTML = '';
+            languages.forEach(lang => {
+                const option = document.createElement('div');
+                option.className = 'language-option';
+                option.textContent = lang.name;
+                option.setAttribute('data-lang', lang.code);
+                option.onclick = () => selectLanguage(lang.code);
+                langList.appendChild(option);
+            });
 
-            // Aplica a tradução
-            applyTranslation(currentLang);
-
-            // Atualiza o atributo lang do HTML para acessibilidade
-            document.documentElement.lang = currentLang;
+            overlay.style.display = 'block';
         }
 
-        // Adiciona um evento para mostrar/esconder a senha e alterna o símbolo
-        document.getElementById('passwordToggle').addEventListener('click', function() {
-            const passwordInput = document.getElementById('passwordInput');
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            // Poderia alternar classes aqui para ícones diferentes, mas manteremos o mesmo símbolo por simplicidade.
-        });
+        function closeLanguageSelector(event) {
+            // Fecha o seletor se clicar no fundo (overlay)
+            if (event.target === overlay) {
+                overlay.style.display = 'none';
+            }
+        }
 
-        // Aplica a tradução inicial ao carregar a página (Inglês)
+        function selectLanguage(langCode) {
+            applyTranslation(langCode);
+            overlay.style.display = 'none'; // Fecha o seletor
+        }
+
+        // --- Funções do Olho da Senha ---
+        function togglePasswordVisibility() {
+            const isPassword = passwordInput.type === 'password';
+
+            if (isPassword) {
+                passwordInput.type = 'text';
+                // Altera o ícone para "olho riscado" (usando uma simulação com Unicode, já que é mais complexo em CSS puro)
+                passwordToggle.innerHTML = '&#128065;&#xFE0E;'; // Olho
+                passwordToggle.style.textDecoration = 'line-through';
+                passwordToggle.style.color = '#fe2c55';
+            } else {
+                passwordInput.type = 'password';
+                // Altera o ícone de volta para "olho"
+                passwordToggle.innerHTML = '&#128065;'; // Olho
+                passwordToggle.style.textDecoration = 'none';
+                passwordToggle.style.color = '#888';
+            }
+        }
+
+        // --- Inicialização ---
         document.addEventListener('DOMContentLoaded', () => {
-             // Iniciar em inglês
-             applyTranslation('en'); 
+             // 1. Aplica a tradução inicial (Inglês)
+             applyTranslation('en');
+
+             // 2. Configura o evento do Olho da Senha
+             passwordToggle.addEventListener('click', togglePasswordVisibility);
+
+             // Define o estado inicial do ícone (olho não riscado)
+             passwordToggle.innerHTML = '&#128065;'; // Olho Unicode
         });
 
     </script>
